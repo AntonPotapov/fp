@@ -19,7 +19,7 @@ readonly class Database implements DatabaseInterface
             return $query;
         }
 
-        $queryArray = str_split($query);
+        $queryArray = str_split($query . ' ');
         $argsNum = 0;
         $resultQuery = '';
         $block = $cntContinue = $blockFail = false;
@@ -43,13 +43,13 @@ readonly class Database implements DatabaseInterface
             if ($word == '?') {
                 $value = $args[$argsNum++];
 
-                $cntContinue = isset($queryArray[$key + 1]) && in_array($queryArray[$key + 1], ['a', 'f', 'd', '#']);
-                if (isset($queryArray[$key + 1]) && $value === $word . $queryArray[$key + 1]) {
+                $cntContinue = in_array($queryArray[$key + 1], ['a', 'f', 'd', '#']);
+                if ($value === $word . $queryArray[$key + 1]) {
                     $blockFail = true;
                     continue;
                 }
 
-                $method = ConvertParameters::getMethod($value, $queryArray[$key + 1] ?? ' ');
+                $method = ConvertParameters::getMethod($value, $queryArray[$key + 1]);
                 try {
                     $addStr = ConvertParameters::{$method}($value);
                 } catch (\TypeError $e) {
@@ -73,7 +73,7 @@ readonly class Database implements DatabaseInterface
             }
         }
 
-        return $resultQuery;
+        return trim($resultQuery);
     }
 
     public function skip()
